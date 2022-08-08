@@ -60,9 +60,6 @@ class FrameSkippingAndFlickering(gym.Wrapper):
         for i in range(self.n_frame_skip):
             obs, reward, done, info = self.env.step(action)
             total_rewards += reward
-            # on retourne le frame max entre les deux dernier
-            # osef des deux premiers, les elements clignotent toutes les 
-            # 2 frames et on veut juste empecher ca
             self.frame_buffer[i%2] = obs
             if done :
                 break
@@ -90,11 +87,8 @@ class GreyscaleAndReshape(gym.ObservationWrapper):
     '''
     def __init__(self, shape, env=None):
         super().__init__(env)
-        # Atari has color channels at the end, pytorch needs them at the beginning
-        # so we give self.shape the dimmesions of the shape argument but with color channels first
+        
         self.shape = (shape[2], shape[0], shape[1])
-        # We use gym.spaces.Box to reshape the obs space
-        # self.observation_space is inherited from gym.ObservationWrapper
         self.observation_space = Box(low=0, high=1.0, shape=self.shape,dtype=np.float32)
      
     '''
@@ -105,7 +99,6 @@ class GreyscaleAndReshape(gym.ObservationWrapper):
     '''
     def observation(self, obs):
         obs = cv2.cvtColor(obs, cv2.COLOR_RGB2GRAY)
-        # Reminder : Python slice notation : x[start_index, end_index, step_size]
         obs = cv2.resize(obs, self.shape[1:], interpolation=cv2.INTER_AREA)
         obs = np.array(obs, dtype=np.uint8).reshape(self.shape) / 255
         return obs
