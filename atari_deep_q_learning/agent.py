@@ -1,7 +1,6 @@
 import torch as T
 import os
 from DQN import LinearDeepQNetwork
-import random
 import numpy as np
 
 class Agent():
