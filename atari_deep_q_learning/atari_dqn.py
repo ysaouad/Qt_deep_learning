@@ -18,7 +18,7 @@ if __name__ == '__main__':
     scores = []
     eps_history = []
     n_steps = 0
-    agent = Agent(gamma=0.99, epsilon=0.10,lr=0.0001, input_dims=(env.observation_space.shape),
+    agent = Agent(gamma=0.99, epsilon=1,lr=0.0001, input_dims=(env.observation_space.shape),
                   n_actions=env.action_space.n, mem_size=50000, eps_min = 0.1, eps_dec=1e-5, batch_size=32)
     
     load = False #Use this parameter to restore your previous best Q networks
