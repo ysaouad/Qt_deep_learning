@@ -7,7 +7,6 @@ import torch as T
 import os
 import matplotlib.pyplot as plt
 from util import build_env,plot_learning_curve
-from dqn_agent import DQNAgent
 from agent import Agent
 
 os.chdir(r'C:\Users\YAA5\Desktop\atari_deep_q_learning') #SET OS DIR FOR THE PLOT
