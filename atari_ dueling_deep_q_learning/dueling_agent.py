@@ -1,6 +1,6 @@
 import torch as T
 import os
-from DQN import LinearDeepQNetwork
+from dueling_deep_q_network import DuelingDeepQNetwork
 import numpy as np
 
 class Agent():
@@ -15,8 +15,8 @@ class Agent():
         self.action_space = [i for i in range(n_actions)]
         self.batch_size = batch_size
         self.lr = lr
-        self.Q = LinearDeepQNetwork(self.lr, self.n_actions, self.input_dims)
-        self.Q_ = LinearDeepQNetwork(self.lr, self.n_actions, self.input_dims)
+        self.Q = DuelingDeepQNetwork(self.lr, self.n_actions, self.input_dims)
+        self.Q_ = DuelingDeepQNetwork(self.lr, self.n_actions, self.input_dims)
         self.step = 0
         self.mem_size = mem_size
         self.index_mem = 0
@@ -30,8 +30,8 @@ class Agent():
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
             state = T.tensor(np.array([observation]), dtype=T.float).to(self.Q.device)
-            actions = self.Q.forward(state)
-            action = T.argmax(actions).item()
+            _, advantage = self.Q.forward(state)
+            action = T.argmax(advantage).item()
         else:
             action = np.random.choice(self.action_space)
         return action
@@ -76,14 +76,13 @@ class Agent():
         dones = T.tensor(dones).to(self.Q.device)
         indices = np.arange(self.batch_size)
         
-        q_pred = self.Q.forward(states)[indices,actions]
-        q_next = self.Q_.forward(states_)
-        Q = self.Q.forward(states_)
-        
-        argmax = T.argmax(Q, dim=1)
+        V, A = self.Q.forward(states)
+        V_, A_ = self.Q_.forward(states_)
+        q_pred = T.add(V, (A - A.mean(dim=1, keepdim=True)))[indices,actions]
+        q_next = T.add(V_, (A_- A_.mean(dim=1, keepdim=True))).max(dim=1)[0]
         
         q_next[dones] = 0.0
-        q_target = rewards + self.gamma*q_next[indices, argmax]
+        q_target = rewards + self.gamma*q_next
 
         loss = self.Q.loss(q_target, q_pred).to(self.Q.device)
         
